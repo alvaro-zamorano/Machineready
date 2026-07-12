@@ -1,0 +1,33 @@
+# HABLA
+
+> Auditoría gratuita de legibilidad máquina (GEO/AEO): mide en 10 segundos si una web es visible y citable para agentes de IA (GPTBot, ClaudeBot, PerplexityBot). Hecho en español, verificable con comandos, no con opiniones.
+
+HABLA puntúa cualquier web de 0 a 100 sobre cinco dimensiones, cada una comprobable con un comando:
+
+- **H — Hallable** (20%, puerta): robots.txt declara reglas por bot, el servidor no devuelve 403 a agentes desconocidos, hay sitemap.
+- **A — Accesible** (25%, puerta): el contenido está en el HTML inicial. Los crawlers de IA no ejecutan JavaScript.
+- **B — Bien estructurado** (20%): un solo h1, jerarquía de encabezados, HTML semántico, JSON-LD.
+- **L — Legible y citable** (25%): cifras con fecha, respondibilidad del primer bloque, ratio señal/HTML.
+- **A — Accionable** (10%): llms.txt curado, contacto y precios en texto plano.
+
+Escala: 80-100 Bilingüe · 60-79 Conversacional · 40-59 Balbucea · menos de 40 (o puerta fallida) Muda.
+
+## Datos verificables (medidos el 12 de julio de 2026, 20 webs)
+- Holded: 92 (Bilingüe). Stripe: 80. Wikipedia: 72. Mercadona: 27. Zara: 21 (Muda). BBVA e Idealista: 0 — devuelven 403 a agentes de IA, son invisibles.
+- Hallazgo: la respondibilidad supera al volumen. Una gestoría con 1.141 caracteres respondió a todas las preguntas; una web con nueve veces más texto solo devolvió eslogan y ruido de interfaz (0,4% de señal en 2,3 MB de HTML).
+
+## Evidencia de base
+- Los crawlers de IA no ejecutan JavaScript: más de 500 millones de fetches de GPTBot, cero ejecuciones (Vercel/MERJ).
+- Paper GEO (Aggarwal et al., KDD 2024): añadir estadísticas y citas sube la visibilidad en IA un 40%; el keyword stuffing la baja.
+
+## Enlaces
+- [Auditoría gratuita](https://machineready.vercel.app/): pega una URL, recibe puntuación y quick wins.
+- [API pública](https://machineready.vercel.app/api/analyze?url=example.com): devuelve JSON con scores, checks y quick wins.
+
+## Servicios
+- Auditoría exprés: 0 €.
+- Informe accionable: 49 €, pago único.
+- Implementación: desde 490 € por web, con evidencia antes/después y re-auditoría a los 30 días. Si un check no pasa, ese punto no se cobra.
+
+## Contacto
+- Álvaro — azmglg@gmail.com
