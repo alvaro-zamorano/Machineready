@@ -181,6 +181,8 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 .scan-pages tr:last-child td{border-bottom:none}
 .scan-pages .u{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);word-break:break-all}
 .scan-pages .s{text-align:right;font-family:'Archivo',sans-serif;font-weight:700;white-space:nowrap;padding-left:12px}
+.scan-cta{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:18px;padding-top:16px;border-top:1px solid var(--line)}
+.scan-cta span{font-size:13px;color:var(--ink-soft);line-height:1.45}
 @media(max-width:560px){.scan-form .btn{width:100%}}
 </style>
 </head>
@@ -225,7 +227,7 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
           <div class="dims" id="dims"></div>
           <div class="wins" id="winsBox"><h5>Qué arreglar primero</h5><ul id="winsList"></ul></div>
           <div class="res-cta">
-            <a class="btn" href="#planes">Quiero el informe completo</a>
+            <a class="btn ghost" href="#planes">Quiero el informe completo</a>
             <span>Con evidencia antes/después verificable.</span>
           </div>
       <div class="scan-offer" id="scanOffer">
@@ -422,11 +424,21 @@ form.addEventListener('submit',e=>{e.preventDefault();run()});
       mail=document.getElementById('scanEmailIn'),
       go=document.getElementById('scanBtn'),
       bad=document.getElementById('scanErr'),
-      out=document.getElementById('scanOut');
+      out=document.getElementById('scanOut'),
+      tool=document.getElementById('toolForm');
   if(!form)return;
 
   function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML}
   function color(n){return n>=80?'var(--go-dark)':n>=60?'var(--amber)':'var(--red)'}
+
+  // Analizar otra web tiene que borrar el escaneo anterior. Si no, te quedas
+  // mirando el informe de un sitio que ya no es el que acabas de analizar:
+  // datos correctos, web equivocada, y ni un aviso de que eso ha pasado.
+  if(tool)tool.addEventListener('submit',function(){
+    out.innerHTML='';
+    offer.style.display='';
+    bad.style.display='none';
+  });
 
   function paint(d){
     var pat=(d.repeated_issues||[]).map(function(p){
@@ -443,6 +455,8 @@ form.addEventListener('submit',e=>{e.preventDefault();run()});
       (pat?'<p class="scan-sec">Lo que se repite (arréglalo una vez)</p><ul class="scan-list">'+pat+'</ul>':'')+
       '<p class="scan-sec">Página por página, de peor a mejor</p>'+
       '<table class="scan-pages"><tbody>'+rows+'</tbody></table>'+
+      '<div class="scan-cta"><a class="btn" href="#planes">Quiero el informe de mi sitio</a>'+
+      '<span>Estas '+d.pages_ok+' páginas, con el arreglo escrito y la evidencia antes/después.</span></div>'+
     '</div>';
     out.scrollIntoView({behavior:'smooth',block:'start'});
   }
