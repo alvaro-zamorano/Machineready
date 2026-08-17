@@ -155,7 +155,7 @@ export default async function handler(req, res) {
     const ok = results.filter(r => typeof r.total === 'number' && r.http === 200);
     if (!ok.length) return res.status(200).json({
       url: root, rubric: '2.0', pages_scanned: results.length, pages_ok: 0,
-      detail: 'Ninguna página respondió 200. La web puede estar bloqueando user-agents desconocidos.',
+      detail: 'No pude leer ninguna página de ese dominio. O no responde, o bloquea a los crawlers que no conoce.',
       pages: results.map(r => ({ url: r.url, total: r.total, grade: r.grade, http: r.http }))
     });
 
