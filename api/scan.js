@@ -96,6 +96,13 @@ async function pool(items, n, fn) {
   return out;
 }
 
+// Fallback v4 para runtimes sin crypto.randomUUID. No necesita ser criptografico:
+// solo agrupar las paginas de un mismo escaneo sin colisionar.
+const uuid4 = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+  const r = Math.random() * 16 | 0;
+  return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+});
+
 async function logScan(rows, email, scanId, referrer) {
   try {
     await fetch(SB_URL + '/rest/v1/habla_analyses', {
@@ -156,7 +163,9 @@ export default async function handler(req, res) {
     const dist = ok.reduce((a, r) => (a[r.grade] = (a[r.grade] || 0) + 1, a), {});
     const gateFails = ok.filter(r => !r.gateA).length;
 
-    const scanId = (globalThis.crypto?.randomUUID?.() || String(Date.now()));
+    // scan_id es uuid en Postgres: un fallback no-uuid haria que el insert de
+    // Supabase devolviera 400 y logScan se lo tragara. Leads perdidos sin ruido.
+    const scanId = globalThis.crypto?.randomUUID?.() || uuid4();
 
     const out = {
       url: root, rubric: '2.0', scan_id: scanId,
