@@ -101,6 +101,14 @@ async function pool(items, n, fn) {
   return out;
 }
 
+// El titular es la linea que vende el informe: cortar a 70 caracteres dejaba frases
+// mutiladas ("...los modelos priorizan lo…"). Cada recomendacion ya empieza por una
+// frase autosuficiente; usamos esa y tiramos el resto.
+const frase = w => {
+  const s = String(w).replace(/^CRÍTICO:\s*/, '').split('. ')[0].replace(/\.$/, '');
+  return s.length > 95 ? s.slice(0, 92).trimEnd() + '…' : s + '.';
+};
+
 // Fallback v4 para runtimes sin crypto.randomUUID. No necesita ser criptografico:
 // solo agrupar las paginas de un mismo escaneo sin colisionar.
 const uuid4 = () => 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
@@ -185,7 +193,7 @@ export default async function handler(req, res) {
       pages_failing_gate: gateFails,
       repeated_issues: patterns.slice(0, 6),
       headline: patterns.length
-        ? `"${patterns[0].win.replace(/^CRÍTICO:\s*/, '').slice(0, 70)}…" aparece en ${patterns[0].pages} de ${ok.length} páginas.`
+        ? `"${frase(patterns[0].win)}" aparece en ${patterns[0].pages} de ${ok.length} páginas.`
         : `Sin fallos repetidos entre páginas: los problemas son puntuales, no de plantilla.`,
       pages: ok.map(r => ({
         url: r.url, total: r.total, grade: r.grade,
