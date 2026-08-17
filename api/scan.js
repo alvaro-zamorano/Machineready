@@ -169,9 +169,15 @@ export default async function handler(req, res) {
       const e = freq.get(w) || { win: w, pages: 0 };
       e.pages++; freq.set(w, e);
     }
-    const patterns = [...freq.values()].sort((a, b) => b.pages - a.pages)
-      .filter(p => p.pages > 1)
+    // Un fallo de SITIO (robots.txt, sitemap, llms.txt, HTTPS) vive en un unico
+    // fichero: sale en las 10 paginas porque es el mismo fichero leido 10 veces,
+    // no porque se repita. Colarlo en el titular como "aparece en 10 de 10
+    // paginas" hace que la linea que vende el informe suene a tonteria.
+    const DE_SITIO = /robots\.txt|sitemap|llms\.txt|HTTPS|certificado/i;
+    const todos = [...freq.values()].sort((a, b) => b.pages - a.pages)
       .map(p => ({ ...p, share: Math.round(100 * p.pages / ok.length) }));
+    const siteIssues = todos.filter(p => DE_SITIO.test(p.win));
+    const patterns = todos.filter(p => !DE_SITIO.test(p.win) && p.pages > 1);
 
     const dist = ok.reduce((a, r) => (a[r.grade] = (a[r.grade] || 0) + 1, a), {});
     const gateFails = ok.filter(r => !r.gateA).length;
@@ -192,6 +198,7 @@ export default async function handler(req, res) {
       grade_distribution: dist,
       pages_failing_gate: gateFails,
       repeated_issues: patterns.slice(0, 6),
+      site_issues: siteIssues.slice(0, 4),
       headline: patterns.length
         ? `"${frase(patterns[0].win)}" aparece en ${patterns[0].pages} de ${ok.length} páginas.`
         : `Sin fallos repetidos entre páginas: los problemas son puntuales, no de plantilla.`,
