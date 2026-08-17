@@ -17,6 +17,11 @@ import { analyze } from './analyze.js';
 // es de plantilla. Depender del listado completo obligaria a tocar /api/analyze,
 // que esgeo.ai consume en produccion. No merece el riesgo.
 
+// Vercel corta las funciones a los 10 s por defecto. Un sitio lento con 10 paginas
+// puede pasarse: sin esto el escaneo devuelve 504 justo en el momento en que el
+// usuario acaba de dar su email. Es el peor sitio posible para fallar.
+export const config = { maxDuration: 60 };
+
 const SB_URL = 'https://bcicjjkgjgajxbrwmeyf.supabase.co';
 const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJjaWNqamtnamdhanhicndtZXlmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjkxODU3ODIsImV4cCI6MjA4NDc2MTc4Mn0.BqgzIMTWvDIzbx1lofd7ZHYWt3FWjdpWc89kBaQGvrs';
 
