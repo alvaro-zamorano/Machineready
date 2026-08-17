@@ -199,9 +199,14 @@ export default async function handler(req, res) {
       pages_failing_gate: gateFails,
       repeated_issues: patterns.slice(0, 6),
       site_issues: siteIssues.slice(0, 4),
+      // Tres desenlaces distintos, y el tercero existe porque el segundo mentia:
+      // decir "sin fallos repetidos" mientras debajo se listan tres problemas de
+      // sitio deja al lector pensando que el informe se contradice.
       headline: patterns.length
         ? `"${frase(patterns[0].win)}" aparece en ${patterns[0].pages} de ${ok.length} páginas.`
-        : `Sin fallos repetidos entre páginas: los problemas son puntuales, no de plantilla.`,
+        : siteIssues.length
+          ? `Tus páginas no repiten ningún fallo: lo que te queda es de sitio, ${siteIssues.length} arreglo${siteIssues.length > 1 ? 's' : ''} en un fichero.`
+          : `Sin fallos repetidos entre páginas: los problemas son puntuales, no de plantilla.`,
       pages: ok.map(r => ({
         url: r.url, total: r.total, grade: r.grade,
         scores: r.scores, wins_count: (r.wins || []).length, wins: r.wins || []
