@@ -154,6 +154,34 @@ h1 em{font-style:normal;color:var(--deep)}
 footer{border-top:1px solid var(--line);padding:32px 0;font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-soft);letter-spacing:.08em}
 footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
 @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}.rv{opacity:1;transform:none}}
+
+/* ── Escaneo de sitio (gate de email) ───────────────────────── */
+.scan-offer{margin-top:22px;padding:22px;border:1px solid var(--line);border-radius:10px;background:var(--paper2)}
+.scan-kicker{font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 6px}
+.scan-h{font-family:'Archivo',sans-serif;font-stretch:110%;font-weight:700;font-size:19px;line-height:1.25;margin:0 0 8px;color:var(--ink)}
+.scan-sub{margin:0 0 14px;color:var(--ink-soft);font-size:15px;line-height:1.55}
+.scan-form{display:flex;gap:8px;flex-wrap:wrap}
+.scan-form input{flex:1 1 220px;min-width:0;padding:13px 14px;border:1px solid var(--line);border-radius:8px;background:var(--paper);color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:14px}
+.scan-form input:focus{outline:none;border-color:var(--go);box-shadow:0 0 0 3px rgba(18,160,107,.15)}
+.scan-form .btn{flex:0 0 auto}
+.scan-note{margin:10px 0 0;font-size:12.5px;color:var(--ink-soft)}
+.scan-out{margin-top:18px}
+.scan-card{padding:20px;border:1px solid var(--line);border-radius:10px;background:var(--paper2)}
+.scan-headline{font-family:'Archivo',sans-serif;font-stretch:110%;font-weight:700;font-size:20px;line-height:1.3;margin:0 0 14px;color:var(--ink)}
+.scan-stats{display:flex;flex-wrap:wrap;gap:18px;margin:0 0 18px;padding-bottom:16px;border-bottom:1px solid var(--line)}
+.scan-stat b{display:block;font-family:'Archivo',sans-serif;font-size:26px;font-weight:700;line-height:1;color:var(--deep)}
+.scan-stat span{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft)}
+.scan-sec{font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--ink-soft);margin:0 0 10px}
+.scan-list{list-style:none;padding:0;margin:0 0 18px}
+.scan-list li{display:flex;gap:12px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:14.5px;line-height:1.5}
+.scan-list li:last-child{border-bottom:none}
+.scan-pct{flex:0 0 auto;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--red);white-space:nowrap}
+.scan-pages{width:100%;border-collapse:collapse;font-size:14px}
+.scan-pages td{padding:8px 0;border-bottom:1px solid var(--line)}
+.scan-pages tr:last-child td{border-bottom:none}
+.scan-pages .u{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);word-break:break-all}
+.scan-pages .s{text-align:right;font-family:'Archivo',sans-serif;font-weight:700;white-space:nowrap;padding-left:12px}
+@media(max-width:560px){.scan-form .btn{width:100%}}
 </style>
 </head>
 <body>
@@ -200,6 +228,18 @@ footer .wrap{display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap}
             <a class="btn" href="#planes">Quiero el informe completo</a>
             <span>Con evidencia antes/después verificable.</span>
           </div>
+      <div class="scan-offer" id="scanOffer">
+        <p class="scan-kicker">Esto era una página</p>
+        <h5 class="scan-h">Tu web tiene más. Y el fallo suele ser el mismo en todas.</h5>
+        <p class="scan-sub">Cuando un problema se repite página tras página no es un problema de contenido: es de plantilla. Se arregla una vez y sube el sitio entero. El escaneo lee hasta 10 páginas de tu sitemap y te dice cuál es el tuyo.</p>
+        <form class="scan-form" id="scanForm">
+          <input type="email" id="scanEmailIn" placeholder="tu@empresa.com" aria-label="Tu email" autocomplete="email" required>
+          <button class="btn" id="scanBtn" type="submit">Escanear mis 10 páginas</button>
+        </form>
+        <p class="scan-note">Te enseño el resultado aquí mismo, en unos segundos. Sin spam: esto es un informe, no una lista de correo.</p>
+        <p class="err" id="scanErr"></p>
+      </div>
+      <div class="scan-out" id="scanOut"></div>
         </div>
       </div>
     </div>
@@ -374,6 +414,62 @@ async function run(){
   btn.disabled=false;btn.textContent='Analizar mi web gratis';
 }
 form.addEventListener('submit',e=>{e.preventDefault();run()});
+</script>
+<script>
+(function(){
+  var offer=document.getElementById('scanOffer'),
+      form=document.getElementById('scanForm'),
+      mail=document.getElementById('scanEmailIn'),
+      go=document.getElementById('scanBtn'),
+      bad=document.getElementById('scanErr'),
+      out=document.getElementById('scanOut');
+  if(!form)return;
+
+  function esc(s){var d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML}
+  function color(n){return n>=80?'var(--go-dark)':n>=60?'var(--amber)':'var(--red)'}
+
+  function paint(d){
+    var pat=(d.repeated_issues||[]).map(function(p){
+      return '<li><span class="scan-pct">'+p.pages+'/'+d.pages_ok+'</span><span>'+esc(p.win)+'</span></li>'}).join('');
+    var rows=(d.pages||[]).map(function(p){
+      return '<tr><td class="u">'+esc(String(p.url).replace(/^https?:\/\//,''))+'</td><td class="s" style="color:'+color(p.total)+'">'+p.total+'</td></tr>'}).join('');
+    out.innerHTML='<div class="scan-card">'+
+      '<p class="scan-headline">'+esc(d.headline)+'</p>'+
+      '<div class="scan-stats">'+
+        '<div class="scan-stat"><b>'+d.site_score+'</b><span>Media del sitio</span></div>'+
+        '<div class="scan-stat"><b>'+d.pages_ok+'</b><span>Páginas leídas</span></div>'+
+        '<div class="scan-stat"><b>'+d.spread.min+'–'+d.spread.max+'</b><span>De la peor a la mejor</span></div>'+
+      '</div>'+
+      (pat?'<p class="scan-sec">Lo que se repite (arréglalo una vez)</p><ul class="scan-list">'+pat+'</ul>':'')+
+      '<p class="scan-sec">Página por página, de peor a mejor</p>'+
+      '<table class="scan-pages"><tbody>'+rows+'</tbody></table>'+
+    '</div>';
+    out.scrollIntoView({behavior:'smooth',block:'start'});
+  }
+
+  form.addEventListener('submit',function(e){
+    e.preventDefault();
+    var el=document.getElementById('urlIn');
+    var web=el&&el.value?el.value.trim():'';
+    if(!web){bad.textContent='Analiza primero una página: necesito saber qué web escanear.';bad.style.display='block';return}
+    bad.style.display='none';
+    go.disabled=true;go.textContent='Escaneando…';
+    fetch('/api/scan?url='+encodeURIComponent(web)+'&email='+encodeURIComponent(mail.value.trim())+'&limit=10&from=habla-front',{signal:AbortSignal.timeout(60000)})
+      .then(function(r){return r.json().then(function(j){return {ok:r.ok,j:j}})})
+      .then(function(res){
+        if(!res.ok||res.j.error)throw new Error(res.j.detail||res.j.error||'api');
+        if(!res.j.pages_ok)throw new Error(res.j.detail||'No pude leer ninguna página de ese sitio.');
+        offer.style.display='none';
+        paint(res.j);
+      })
+      .catch(function(e2){
+        var m=String(e2&&e2.message||e2);
+        bad.textContent=(m==='api'||m==='Failed to fetch')?'El escaneo falló. Vuelve a intentarlo en un minuto.':m;
+        bad.style.display='block';
+      })
+      .finally(function(){go.disabled=false;go.textContent='Escanear mis 10 páginas'});
+  });
+})();
 </script>
 </body>
 </html>
